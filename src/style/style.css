@@ -1,0 +1,162 @@
+*{
+    --water-blue: #3ea4f0;
+    --water-blue-hover:#0a6bbf;
+    --ship-color: #444444;
+    --hit-color: #ff6b6b;
+    --miss-color: #c5c5c5;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+.main-window{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+header{
+    width: 100vw;
+    min-width: 350px;
+    text-align: center;
+    border-bottom: grey solid 2px;
+    align-self: center;
+}
+
+.title{
+    font-size: 2rem;
+    margin: 0;
+    padding: 1rem;
+    background-color: var(--water-blue);
+}
+
+#app{
+    display: flex;
+    flex-direction: column;
+    
+}
+
+#new-game-btn{
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 1rem;
+    padding: 0.3rem;
+    background-color: var(--water-blue);
+    width: 8rem;
+    align-self: center;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#new-game-btn:hover{
+    background-color: var(--water-blue-hover);
+}
+
+.game-container {
+    display: flex;
+    gap: 3rem;
+    width: 80vw;
+    justify-content: center;
+    flex-flow: row wrap;
+    margin-bottom: 2rem;
+}
+
+.board-container {
+    text-align: center;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    border: 1px solid ;
+    width: 350px;
+    height: 350px;
+}
+
+.cell {
+    background-color: var(--water-blue);
+    border: 1px solid black;
+    aspect-ratio: 1;
+    
+}
+
+#enemy-board > .cell:hover{
+    background-color: var(--water-blue-hover);
+    cursor: pointer;
+}
+
+.ship {
+    background-color: var(--ship-color);
+}
+
+.hit {
+    background-color: var(--hit-color);
+    cursor: none;
+    pointer-events: none;
+}
+
+.miss {
+    background-color: var(--miss-color);
+    cursor: none;
+    pointer-events: none;
+}
+
+#finale-result{
+    font-size: 3rem;
+    font-weight: bold;
+    text-align: center;
+    background-color: var(--water-blue);
+    align-self: center;
+    width: 20rem;
+    border-radius: 5px;
+}
+
+/* Ship Placement window */
+.placement-window {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    z-index: 1000;
+}
+
+.placement-cell {
+    background-color: var(--water-blue);
+    border: 1px solid black;
+    aspect-ratio: 1;
+    cursor: pointer;
+}
+
+.placement-cell.preview {
+    background-color: rgba(0, 255, 0, 0.3);
+}
+
+.placement-cell.invalid-preview {
+    background-color: rgb(255, 0, 0);
+}
+
+.placement-cell.ship-placed {
+    background-color: var(--ship-color);
+}
+
+.placement-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.non-interactive {
+    pointer-events: none;
+    filter: blur(10px);
+}

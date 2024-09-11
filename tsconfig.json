@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES6", // Or ESNext for the latest features
+    "module": "ES6", // Use ES6 modules
+    "allowJs": true,
+    "strict": true,
+    "strictNullChecks": false,
+    "esModuleInterop": true, // Recommended for compatibility with CommonJS modules
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node", // Use Node.js module resolution strategy
+    "outDir": "./dist" // Output directory for compiled files
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
