@@ -38,9 +38,12 @@ export function Dom() {
             return; // Ignore clicks when it's not player's turn or on already attacked cells
         }
 
+        isPlayerTurn = false; // Immediately set to false to prevent multiple clicks
+
         const result = gameboard.receiveAttack(col, row);
+        updateCellAppearance(cell, result);
+
         if (result) {
-            cell.classList.add('hit');
             const ship = gameboard.getShipAt(col, row);
             if (ship && ship.isSunk()) {
                 console.log(ship.getName() + ' is sunk');
@@ -51,10 +54,11 @@ export function Dom() {
                 return;
             }
             // Player gets another turn
-            setTimeout(playerTurn, 500);
+            setTimeout(() => {
+                isPlayerTurn = true;
+                playerTurn();
+            }, 500);
         } else {
-            cell.classList.add('miss');
-            isPlayerTurn = false;
             setTimeout(aiTurn, 500);
         }
     }
@@ -99,6 +103,18 @@ export function Dom() {
             cells[index].classList.add('miss');
         });
     }
+
+    //Function to update cell appearance
+    function updateCellAppearance(cell: HTMLElement, isHit: boolean): void {
+        if (isHit) {
+            cell.classList.add('hit');
+            cell.textContent = '×'; // Add an "X" mark for hits
+        } else {
+            cell.classList.add('miss');
+            cell.textContent = '○'; // Add a circle for misses
+        }
+    }
+
 
     // Create a new game board
     function createNewGameboard(): void {
@@ -177,16 +193,16 @@ export function Dom() {
     }
 
     //Finish the game
-    function GameFinale(gameboard:Gameboard): void{
+    function GameFinale(gameboard: Gameboard): void {
         const gameContainer = document.querySelector('.game-container') as HTMLElement;
         const finaleResult = document.getElementById('finale-result') as HTMLElement;
-        if(gameboard.getName() === 'player'){
-            finaleResult.textContent = 'Player Lose';
+        if (gameboard.getName() === 'player') {
+            finaleResult.textContent = 'AI Wins';
+            alert("AI wins!");
+        } else {
+            finaleResult.textContent = 'Player Wins';
+            alert("Player wins!");
         }
-        else{
-            finaleResult.textContent = 'Player Win';
-        }
-
         gameContainer.style.pointerEvents = 'none';
     }
 

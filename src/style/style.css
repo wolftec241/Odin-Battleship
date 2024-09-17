@@ -38,7 +38,6 @@ header{
 #app{
     display: flex;
     flex-direction: column;
-    
 }
 
 #new-game-btn{
@@ -84,7 +83,11 @@ header{
     background-color: var(--water-blue);
     border: 1px solid black;
     aspect-ratio: 1;
-    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    font-weight: bold;
 }
 
 #enemy-board > .cell:hover{
@@ -98,13 +101,15 @@ header{
 
 .hit {
     background-color: var(--hit-color);
-    cursor: none;
+    color: #ffffff;
+    cursor: default;
     pointer-events: none;
 }
 
 .miss {
     background-color: var(--miss-color);
-    cursor: none;
+    color: #000000;
+    cursor: default;
     pointer-events: none;
 }
 
