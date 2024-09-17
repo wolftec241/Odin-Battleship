@@ -89,6 +89,7 @@ export function ShipPlacementWindow(playerBoard: Gameboard, onFinish: () => void
     }
 
     function randomize(){
+        playerBoard = new Gameboard('player');
         playerBoard.placeShipsRandomly();
         finishPlacement();
     }
