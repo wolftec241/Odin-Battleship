@@ -6,7 +6,7 @@ export class Gameboard {
     private board: Ship[][];
     private ships: { ship: Ship, places: number[][]}[] = [];
     private missedShots: boolean[][];
-    private SIZE: number = 10;
+    private GRID_SIZE = 10;
     private numberOfShips: number = 0;
 
     constructor(name:string) {
@@ -17,12 +17,12 @@ export class Gameboard {
     }
 
     initialize(): void {
-        for (let i = 0; i < this.SIZE; i++) {
+        for (let i = 0; i < this.GRID_SIZE; i++) {
             this.board[i] = []
             this.missedShots[i] = [];
-            for (let j = 0; j < this.SIZE; j++) {
+            for (let j = 0; j < this.GRID_SIZE; j++) {
                 this.board[i][j] = null;
-                this.missedShots[i][j] = false;
+                this.missedShots[i][j] = null;
             }
         }
     }
@@ -36,7 +36,7 @@ export class Gameboard {
         let places = [];
         if (Ship.isVertical() === true) {
             // Check if ship placement is within bounds
-            if (row + Ship.getLength() > this.SIZE || column < 0 || row < 0) return false;
+            if (row + Ship.getLength() > this.GRID_SIZE || column < 0 || row < 0) return false;
             
             // Check for overlap and one-cell distance
             for (let i = 0; i < Ship.getLength(); i++) {
@@ -50,7 +50,7 @@ export class Gameboard {
             }
         } else if (Ship.isVertical() === false) {
             // Check if ship placement is within bounds
-            if (column + Ship.getLength() > this.SIZE || column < 0 || row < 0) return false;
+            if (column + Ship.getLength() > this.GRID_SIZE || column < 0 || row < 0) return false;
 
             // Check for overlap and one-cell distance
             for (let i = 0; i < Ship.getLength(); i++) {
@@ -74,7 +74,7 @@ export class Gameboard {
 
      // Helper to check if a position is within the game board bounds
      private isWithinBounds(column: number, row: number): boolean {
-        return column >= 0 && column < this.SIZE && row >= 0 && row < this.SIZE;
+        return column >= 0 && column < this.GRID_SIZE && row >= 0 && row < this.GRID_SIZE;
     }
 
 
@@ -104,6 +104,8 @@ export class Gameboard {
     // Receive an attack at a specific position
     receiveAttack(column: number, row: number): boolean {
         let ship: Ship = this.getShipAt(column, row)
+        console.log(this.numberOfShips);
+        
         if (ship === null) {
             this.missedShots[column][row] = true;
             return false;
@@ -136,8 +138,8 @@ export class Gameboard {
     // New method to get all cells that should be marked as 'miss'
     getAllMissedCells(): [number, number][] {
         let missedCells: [number, number][] = [];
-        for (let col = 0; col < this.SIZE; col++) {
-            for (let row = 0; row < this.SIZE; row++) {
+        for (let col = 0; col < this.GRID_SIZE; col++) {
+            for (let row = 0; row < this.GRID_SIZE; row++) {
                 if (this.missedShots[col][row]) {
                     missedCells.push([col, row]);
                 }
@@ -169,8 +171,8 @@ export class Gameboard {
         ships.forEach(shipInfo => {
             let placed = false;
             while (!placed) {
-                const col = Math.floor(Math.random() * this.SIZE);
-                const row = Math.floor(Math.random() * this.SIZE);
+                const col = Math.floor(Math.random() * this.GRID_SIZE);
+                const row = Math.floor(Math.random() * this.GRID_SIZE);
                 const orientation = Math.random() < 0.5 ? 'horizontal' : 'vertical';
                 const ship = new Ship(shipInfo.name,shipInfo.length, orientation);
                 

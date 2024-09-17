@@ -1,9 +1,13 @@
 import { Gameboard } from "./Gameboard";
 import { ShipPlacementWindow } from "./ShipPlacementWindow";
+import { EnemyAi } from "./EnemyAi";
 
 export function Dom() {
     const GRID_SIZE = 10;
-
+    let playerBoard: Gameboard;
+    let enemyBoard: Gameboard;
+    let aiPlayer: EnemyAi;
+    let isPlayerTurn: boolean;
     // Create a grid for the game board
     function createGrid(containerId: string, gameboard: Gameboard): void {
         const container = document.getElementById(`${containerId}-board`);
@@ -30,6 +34,10 @@ export function Dom() {
 
     // Handle click events on the enemy board
     function handleCellClick(col: number, row: number, gameboard: Gameboard, cell: HTMLElement): void {
+        if (!isPlayerTurn || cell.classList.contains('hit') || cell.classList.contains('miss')) {
+            return; // Ignore clicks when it's not player's turn or on already attacked cells
+        }
+
         const result = gameboard.receiveAttack(col, row);
         if (result) {
             cell.classList.add('hit');
@@ -38,13 +46,43 @@ export function Dom() {
                 console.log(ship.getName() + ' is sunk');
                 updateGrid('enemy', gameboard);
             }
+            if (gameboard.allShipsSunk()) {
+                GameFinale(gameboard);
+                return;
+            }
+            // Player gets another turn
+            setTimeout(playerTurn, 500);
         } else {
             cell.classList.add('miss');
+            isPlayerTurn = false;
+            setTimeout(aiTurn, 500);
         }
+    }
+
+    function playerTurn(): void {
+        isPlayerTurn = true;
+    }
+
+    function aiTurn(): void {
+        if (isPlayerTurn) return; // Safeguard against unexpected calls
+
+        const [aiCol, aiRow] = aiPlayer.makeMove();
+        const playerCell = document.querySelector(`.player-cell[data-col="${aiCol}"][data-row="${aiRow}"]`) as HTMLElement;
         
-        //Check if all ships is sunk
-        if(gameboard.allShipsSunk){
-            GameFinale(gameboard);
+        if (playerBoard.getShipAt(aiCol, aiRow)) {
+            playerCell.classList.add('hit');
+            updateGrid('player', playerBoard);
+            if (playerBoard.allShipsSunk()) {
+                GameFinale(playerBoard);
+                return;
+            }
+            // AI gets another turn
+            setTimeout(aiTurn, 500);
+        } else {
+            playerCell.classList.add('miss');
+            updateGrid('player', playerBoard);
+            isPlayerTurn = true;
+            playerTurn();
         }
     }
 
@@ -78,8 +116,10 @@ export function Dom() {
         const mainContent = document.getElementById('app') || document.body;
         mainContent.appendChild(gameContainer);
 
-        const playerBoard = new Gameboard('player');
-        const enemyBoard = new Gameboard('enemy');
+        playerBoard = new Gameboard('player');
+        enemyBoard = new Gameboard('enemy');
+        aiPlayer = new EnemyAi(playerBoard);
+
 
         // Create the player's board first
         createGrid('player', playerBoard);
@@ -91,7 +131,7 @@ export function Dom() {
         ShipPlacementWindow(playerBoard, () => {
             // Only create the enemy board after ship placement is complete
             createGrid('enemy', enemyBoard);
-            
+            isPlayerTurn = true;
         });
 
         // Start with ship placement for the player
@@ -138,13 +178,16 @@ export function Dom() {
 
     //Finish the game
     function GameFinale(gameboard:Gameboard): void{
-        const finaleResult = document.getElementById('finale-result');
+        const gameContainer = document.querySelector('.game-container') as HTMLElement;
+        const finaleResult = document.getElementById('finale-result') as HTMLElement;
         if(gameboard.getName() === 'player'){
             finaleResult.textContent = 'Player Lose';
         }
         else{
             finaleResult.textContent = 'Player Win';
         }
+
+        gameContainer.style.pointerEvents = 'none';
     }
 
     return {
