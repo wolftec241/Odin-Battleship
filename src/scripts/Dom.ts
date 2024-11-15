@@ -204,6 +204,8 @@ export function Dom() {
     // Remove any existing game boards
     function deletePrevBoards() {
         let gameContainers = document.querySelectorAll('.game-container');
+        const finaleResult = document.getElementById('finale-result') as HTMLElement;
+        finaleResult.textContent = '';
         gameContainers.forEach(container => {
             container.remove();
         });
