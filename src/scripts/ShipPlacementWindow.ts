@@ -1,7 +1,7 @@
 import { Ship } from "./Ship";
 import { Gameboard } from "./Gameboard";
 
-export function ShipPlacementWindow(playerBoard: Gameboard, onFinish: () => void) {
+export function ShipPlacementWindow(playerBoard: Gameboard, onFinish: (board:Gameboard) => void) {
     document.querySelector('.main-window').classList.add('non-interactive');
     const GRID_SIZE = 10;
     const ships = [
@@ -88,9 +88,25 @@ export function ShipPlacementWindow(playerBoard: Gameboard, onFinish: () => void
         return controls;
     }
 
-    function randomize(){
+    function randomize() {
+        // Create a new board instance to ensure clean state
         playerBoard = new Gameboard('player');
         playerBoard.placeShipsRandomly();
+        
+        // Update visual state by marking all ship positions
+        const cells = document.querySelectorAll('.placement-cell');
+        cells.forEach(cell => cell.classList.remove('ship-placed'));
+        
+        for (let col = 0; col < GRID_SIZE; col++) {
+            for (let row = 0; row < GRID_SIZE; row++) {
+                if (playerBoard.getShipAt(col, row)) {
+                    const index = col * GRID_SIZE + row;
+                    const cell = cells[index];
+                    cell.classList.add('ship-placed');
+                }
+            }
+        }
+        
         finishPlacement();
     }
 
@@ -173,6 +189,7 @@ export function ShipPlacementWindow(playerBoard: Gameboard, onFinish: () => void
         if (!playerBoardElement) return;
 
         const cells = playerBoardElement.querySelectorAll('.cell');
+        cells.forEach(cell => cell.classList.remove('ship'));
         
         for (let col = 0; col < GRID_SIZE; col++) {
             for (let row = 0; row < GRID_SIZE; row++) {
@@ -191,12 +208,13 @@ export function ShipPlacementWindow(playerBoard: Gameboard, onFinish: () => void
         if (placementWindow) {
             placementWindow.remove();
         }
-        document.querySelector('.main-window').classList.remove('non-interactive');
+        document.querySelector('.main-window')?.classList.remove('non-interactive');
         
         // Update the player's board with placed ships
         updatePlayerBoard();
 
-        onFinish();
+        // Pass the playerBoard to the callback
+        onFinish(playerBoard);
     }
 
     // Initialize the ship placement window

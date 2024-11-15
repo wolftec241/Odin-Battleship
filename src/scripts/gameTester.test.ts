@@ -22,14 +22,14 @@ describe('Ship', () => {
   });
 
   test('ship should register hits', () => {
-    ship.getHit();
+    ship.getHit('1,1');
     expect(ship.getNumberOfHits()).toBe(1);
   });
 
   test('ship should be sunk when hit enough times', () => {
-    ship.getHit();
-    ship.getHit();
-    ship.getHit();
+    ship.getHit('1,1');
+    ship.getHit('2,1');
+    ship.getHit('3,1');
     expect(ship.isSunk()).toBe(true);
   });
 });

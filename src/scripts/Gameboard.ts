@@ -2,29 +2,31 @@ import { Ship } from './Ship'
 
 // Gameboard class represents the game board for a player
 export class Gameboard {
-    private name:string;
+    private name: string;
     private board: Ship[][];
-    private ships: { ship: Ship, places: number[][]}[] = [];
+    private ships: { ship: Ship, places: number[][] }[] = [];
     private missedShots: boolean[][];
     private GRID_SIZE = 10;
-    private numberOfShips: number = 0;
 
-    constructor(name:string) {
+    constructor(name: string) {
         this.name = name;
-        this.board = []
-        this.missedShots = []
-        this.initialize()
+        this.board = [];
+        this.missedShots = [];
+        this.initialize();
     }
 
     initialize(): void {
+        this.board = [];
+        this.missedShots = [];
         for (let i = 0; i < this.GRID_SIZE; i++) {
-            this.board[i] = []
+            this.board[i] = [];
             this.missedShots[i] = [];
             for (let j = 0; j < this.GRID_SIZE; j++) {
                 this.board[i][j] = null;
                 this.missedShots[i][j] = null;
             }
         }
+        this.ships = [];
     }
 
     getName(){
@@ -32,43 +34,42 @@ export class Gameboard {
     }
 
     // Place a ship on the board with additional checks
-    placeShip(Ship: Ship, column: number, row: number): boolean {
+    placeShip(ship: Ship, column: number, row: number): boolean {
         let places = [];
-        if (Ship.isVertical() === true) {
+        if (ship.isVertical() === true) {
             // Check if ship placement is within bounds
-            if (row + Ship.getLength() > this.GRID_SIZE || column < 0 || row < 0) return false;
+            if (row + ship.getLength() > this.GRID_SIZE || column < 0 || row < 0) return false;
             
             // Check for overlap and one-cell distance
-            for (let i = 0; i < Ship.getLength(); i++) {
+            for (let i = 0; i < ship.getLength(); i++) {
                 if (!this.isCellAvailable(column, row + i)) return false;
             }
 
             // Place the ship after successful checks
-            for (let i = 0; i < Ship.getLength(); i++) {
-                this.board[column][row + i] = Ship;
-                places.push([column,row+i]);
+            for (let i = 0; i < ship.getLength(); i++) {
+                this.board[column][row + i] = ship;
+                places.push([column, row + i]);
             }
-        } else if (Ship.isVertical() === false) {
+        } else {
             // Check if ship placement is within bounds
-            if (column + Ship.getLength() > this.GRID_SIZE || column < 0 || row < 0) return false;
+            if (column + ship.getLength() > this.GRID_SIZE || column < 0 || row < 0) return false;
 
             // Check for overlap and one-cell distance
-            for (let i = 0; i < Ship.getLength(); i++) {
+            for (let i = 0; i < ship.getLength(); i++) {
                 if (!this.isCellAvailable(column + i, row)) return false;
             }
 
             // Place the ship after successful checks
-            for (let i = 0; i < Ship.getLength(); i++) {
-                this.board[column + i][row] = Ship;
-                places.push([column+i,row]);
+            for (let i = 0; i < ship.getLength(); i++) {
+                this.board[column + i][row] = ship;
+                places.push([column + i, row]);
             }
         }
 
         this.ships.push({
-            ship:Ship,
-            places:places
+            ship: ship,
+            places: places
         });
-        this.numberOfShips++;
         return true;
     }
 
@@ -103,17 +104,28 @@ export class Gameboard {
 
     // Receive an attack at a specific position
     receiveAttack(column: number, row: number): boolean {
-        let ship: Ship = this.getShipAt(column, row)
-        console.log(this.numberOfShips);
-        
+        const ship = this.getShipAt(column, row);
+    
         if (ship === null) {
             this.missedShots[column][row] = true;
             return false;
         }
-        ship.getHit();
+    
+        // Track hit
+        ship.getHit(`${column},${row}`);
+        console.log(this.ships.length);
+    
+        // Verify if the ship is sunk
         if (ship.isSunk()) {
-            this.numberOfShips--;
-            this.markAdjacentCells(ship);
+            const shipInfo = this.ships.find((s) => s.ship === ship);
+            if (shipInfo) {
+                const allPositionsHit = shipInfo.places.every(([col, row]) =>
+                    ship.hitPositions.has(`${col},${row}`)
+                );
+                if (allPositionsHit) {
+                    this.markAdjacentCells(ship);
+                }
+            }
         }
         return true;
     }
@@ -155,11 +167,14 @@ export class Gameboard {
 
     // Check if all ships are sunk
     allShipsSunk() {
-        return this.numberOfShips <= 0;
+        return this.ships.every(({ ship }) => ship.isSunk());
     }
     
     //Method to place ships randomly
     placeShipsRandomly(): void {
+        // Reset the board and counters first
+        this.initialize();
+
         const ships = [
             { name: 'Carrier', length: 5 },
             { name: 'Battleship', length: 4 },
@@ -170,16 +185,28 @@ export class Gameboard {
 
         ships.forEach(shipInfo => {
             let placed = false;
-            while (!placed) {
+            let attempts = 0;
+            const maxAttempts = 100; // Prevent infinite loops
+
+            while (!placed && attempts < maxAttempts) {
                 const col = Math.floor(Math.random() * this.GRID_SIZE);
                 const row = Math.floor(Math.random() * this.GRID_SIZE);
                 const orientation = Math.random() < 0.5 ? 'horizontal' : 'vertical';
-                const ship = new Ship(shipInfo.name,shipInfo.length, orientation);
+                const ship = new Ship(shipInfo.name, shipInfo.length, orientation);
                 
                 if (this.placeShip(ship, col, row)) {
                     placed = true;
                 }
+                attempts++;
+            }
+
+            if (!placed) {
+                console.error(`Failed to place ${shipInfo.name}`);
             }
         });
+    }
+
+    getBoard(){
+        return this.board;
     }
 }

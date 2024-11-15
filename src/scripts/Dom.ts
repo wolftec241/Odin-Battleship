@@ -73,9 +73,18 @@ export function Dom() {
         const [aiCol, aiRow] = aiPlayer.makeMove();
         const playerCell = document.querySelector(`.player-cell[data-col="${aiCol}"][data-row="${aiRow}"]`) as HTMLElement;
         
-        if (playerBoard.getShipAt(aiCol, aiRow)) {
+        // Check for ship and call receiveAttack BEFORE updating the cell appearance
+        const hitShip = playerBoard.getShipAt(aiCol, aiRow);
+        playerBoard.receiveAttack(aiCol, aiRow);
+
+        if (hitShip) {
+            // Update cell appearance for a hit
+            playerCell.classList.remove('miss'); // Remove miss class if it was accidentally added
             playerCell.classList.add('hit');
+            playerCell.textContent = '×';
+            
             updateGrid('player', playerBoard);
+            
             if (playerBoard.allShipsSunk()) {
                 GameFinale(playerBoard);
                 return;
@@ -83,7 +92,10 @@ export function Dom() {
             // AI gets another turn
             setTimeout(aiTurn, 500);
         } else {
+            // Update cell appearance for a miss
             playerCell.classList.add('miss');
+            playerCell.textContent = '○';
+            
             updateGrid('player', playerBoard);
             isPlayerTurn = true;
             playerTurn();
@@ -96,22 +108,41 @@ export function Dom() {
         if (!container) return;
 
         const cells = container.querySelectorAll('.cell');
+        // First update hits
+        for (let col = 0; col < GRID_SIZE; col++) {
+            for (let row = 0; row < GRID_SIZE; row++) {
+                const ship = gameboard.getShipAt(col, row);
+                if (ship) {
+                    const index = col * GRID_SIZE + row;
+                    const cell = cells[index] as HTMLElement;
+                    if (cell.classList.contains('hit')) {
+                        cell.textContent = '×';
+                    }
+                }
+            }
+        }
+        
+        // Then update misses
         const missedCells = gameboard.getAllMissedCells();
-
         missedCells.forEach(([col, row]) => {
             const index = col * GRID_SIZE + row;
-            cells[index].classList.add('miss');
+            const cell = cells[index] as HTMLElement;
+            if (!cell.classList.contains('hit')) {  // Only add miss if it's not already marked as hit
+                cell.classList.add('miss');
+                cell.textContent = '○';
+            }
         });
     }
 
     //Function to update cell appearance
     function updateCellAppearance(cell: HTMLElement, isHit: boolean): void {
+        cell.classList.remove('hit', 'miss'); // Clear existing classes first
         if (isHit) {
             cell.classList.add('hit');
-            cell.textContent = '×'; // Add an "X" mark for hits
+            cell.textContent = '×';
         } else {
             cell.classList.add('miss');
-            cell.textContent = '○'; // Add a circle for misses
+            cell.textContent = '○';
         }
     }
 
@@ -119,39 +150,36 @@ export function Dom() {
     // Create a new game board
     function createNewGameboard(): void {
         deletePrevBoards();
-
+        
         const gameContainer = document.createElement('div');
         gameContainer.classList.add('game-container');
-
+    
         const playerBoardContainer = createBoardContainer('Player');
         const EnemyBoardContainer = createBoardContainer('Enemy');
-
+    
         gameContainer.appendChild(playerBoardContainer);
         gameContainer.appendChild(EnemyBoardContainer);
-
+    
         const mainContent = document.getElementById('app') || document.body;
         mainContent.appendChild(gameContainer);
-
+    
         playerBoard = new Gameboard('player');
         enemyBoard = new Gameboard('enemy');
-        aiPlayer = new EnemyAi(playerBoard);
-
-
+    
         // Create the player's board first
         createGrid('player', playerBoard);
-
+    
         // Place enemy ships randomly
         enemyBoard.placeShipsRandomly();
-
-        // Then open the ship placement window
-        ShipPlacementWindow(playerBoard, () => {
-            // Only create the enemy board after ship placement is complete
+    
+        // Open the ship placement window with properly typed callback
+        ShipPlacementWindow(playerBoard, (updatedPlayerBoard: Gameboard) => {
+            // Create the enemy board after ship placement is complete
             createGrid('enemy', enemyBoard);
+            playerBoard = updatedPlayerBoard; // Update the playerBoard with the new board
+            aiPlayer = new EnemyAi(playerBoard);
             isPlayerTurn = true;
         });
-
-        // Start with ship placement for the player
-        
     }
 
 
@@ -196,13 +224,10 @@ export function Dom() {
     function GameFinale(gameboard: Gameboard): void {
         const gameContainer = document.querySelector('.game-container') as HTMLElement;
         const finaleResult = document.getElementById('finale-result') as HTMLElement;
-        if (gameboard.getName() === 'player') {
-            finaleResult.textContent = 'AI Wins';
-            alert("AI wins!");
-        } else {
-            finaleResult.textContent = 'Player Wins';
-            alert("Player wins!");
-        }
+        const winner = gameboard.getName() === 'player' ? 'AI' : 'Player';
+    
+        finaleResult.textContent = `${winner} Wins`;
+        alert(`${winner} wins!`);
         gameContainer.style.pointerEvents = 'none';
     }
 

@@ -2,17 +2,16 @@
 export class Ship {
   name:string;
   shipLength: number;
-  numberOfHits: number;
+  hitPositions: Set<string>;  // Track specific hit positions
   sunk: boolean;
   orientation:'vertical'| 'horizontal';
 
   // Constructor initializes a ship with a given length
   constructor(name:string, length: number, orientation: 'vertical'| 'horizontal') {
     this.name = name;
-      this.shipLength = length;
-      this.numberOfHits = 0;
-      this.sunk = false;
-      this.orientation = orientation;
+    this.shipLength = length;
+    this.hitPositions = new Set();  // Initialize empty set of hit positions
+    this.orientation = orientation;
   }
 
   // Returns the length of the ship
@@ -26,20 +25,18 @@ export class Ship {
 
   // Returns the number of hits the ship has taken
   public getNumberOfHits(): number {
-      return this.numberOfHits;
+    return this.hitPositions.size;
   }
 
   // Checks if the ship is sunk
   public isSunk(): boolean {
-      return this.sunk;
+    return this.hitPositions.size >= this.shipLength;
   }
 
   // Registers a hit on the ship and checks if it's sunk
-  public getHit(): void {
-      this.numberOfHits++;
-      if (this.numberOfHits >= this.shipLength) {
-          this.sunk = true;
-      }
+  public getHit(position: string): void {
+    this.hitPositions.add(position);
+    this.isSunk();
   }
 
   isVertical(){
